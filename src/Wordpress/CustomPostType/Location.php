@@ -23,6 +23,9 @@ class Location extends CustomPostType
 
         // Setting role permissions
         add_action('admin_init',array($this, 'addRoleCaps'),999);
+        // Listing of locations
+        add_shortcode('cb_locations', array(\CommonsBooking\View\Location::class, 'shortcode'));
+
     }
 
     public function getTemplate($content)
@@ -30,8 +33,10 @@ class Location extends CustomPostType
         $cb_content = '';
         if (is_singular(self::getPostType())) {
             ob_start();
-            cb_get_template_part('meta', 'location');
-            cb_get_template_part('calendar', 'location');
+            global $post;
+            $location = new \CommonsBooking\Model\Location($post);
+            set_query_var('location', $location);
+            cb_get_template_part('location', 'single');
             $cb_content = ob_get_clean();
         } // if archive...
 
@@ -100,7 +105,7 @@ class Location extends CustomPostType
             'exclude_from_search' => true,
 
             // Welche Elemente sollen in der Backend-Detailansicht vorhanden sein?
-            'supports'            => array('title', 'editor', 'thumbnail', 'custom-fields', 'revisions'),
+            'supports'            => array('title', 'editor', 'thumbnail', 'custom-fields', 'revisions', 'excerpt'),
 
             // Soll der Post Type Kategien haben?
             //'taxonomies'         => array('category'),
@@ -206,7 +211,7 @@ class Location extends CustomPostType
             // 'closed'     => true, // Keep the metabox closed by default
         ));
 
-        // short description
+        // location E-Mail
         $cmb->add_field(array(
             'name'       => __('Location email', 'commonsbooking'),
             'desc'       => __('email-address to get copy of booking confirmation and cancellation mails', 'commonsbooking'),

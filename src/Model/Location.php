@@ -10,18 +10,24 @@ class Location extends CustomPost
 {
     /**
      * Returns bookable timeframes for location.
+     * 
+     * @TODO: should support $args 
+     *
      * @return array
      */
     public function getBookableTimeframes()
     {
-        return Timeframe::get([$this->ID], [], [\CommonsBooking\Wordpress\CustomPostType\Timeframe::BOOKABLE_ID]);
+        return Timeframe::get([$this->ID], [], [\CommonsBooking\Wordpress\CustomPostType\Timeframe::BOOKABLE_ID], NULL, TRUE);
     }
 
+   
     /**
-     * Returns Locations, bookable in connection with item.
-     * @param $itemId
+     * getBookableTimeframesByItem
+     * 
+     * returns bookable timeframes for a given itemID 
      *
-     * @return array
+     * @param  mixed $itemId
+     * @return array 
      */
     public function getBookableTimeframesByItem($itemId)
     {
@@ -29,11 +35,18 @@ class Location extends CustomPost
     }
 
     /**
-     * Returns location infos.
+     * formattedAddress
+     * 
+     * Returns the location address including location name in multiple lanes with <br> line breaks
+     * 
+     * @TODO: turn this into a user-configurable template. 
+     * E.g. a textarea "location format" in the backend that gets run through CB::get():
+     * {{location_street}}<br>{{location_postcode}} {{location_city}}
+     * 
      *
-     * @return void
+     * @return string
      */
-    public function location_address()
+    public function formattedAddress()
     {
         
         $location = array (
@@ -47,27 +60,40 @@ class Location extends CustomPost
 
     }
 
+
     /**
+     * formattedAddressOneLine
      * 
-     * @return string
+     * Returns the formatted Location address in one line, separated by comma
+     * 
+     * @TODO: Do not return tags (,) if values are empty. This applies to  formattedAddress(), too
+     *
+     * @return void
      */
-    public function address()
+    public function formattedAddressOneLine()
     {
         return sprintf(
             '%s, %s %s',
-            CB::get('location', CB_METABOX_PREFIX . 'location_street'),
-            CB::get('location', CB_METABOX_PREFIX . 'location_postcode'),
-            CB::get('location', CB_METABOX_PREFIX . 'location_city')
+            CB::get('location', CB_METABOX_PREFIX . 'location_street', $this->post->ID),
+            CB::get('location', CB_METABOX_PREFIX . 'location_postcode', $this->post->ID),
+            CB::get('location', CB_METABOX_PREFIX . 'location_city', $this->post->ID)
         );
-
     }
 
     /**
-     * Returns location contact info.
+     * formattedContactInfo
+     * 
+     * Returns formatted location contact info with info text
+     * 
+     * @TODO: do not add any text in here, any text should be in the backend email text field! 
+     * @TODO: in cb1, we had: location info that could be hidden until a successful booking. no longer important? 
+     * @TODO: "pickup instructions" and "contact information" fulfill the same purpouse? retire one of them?   
+     * 
      * @return string
      */
-    public function location_contact()
+    public function formattedContactInfo()
     {   
+        $contact = array();
         if ( !empty( CB::get( 'location', CB_METABOX_PREFIX . 'location_contact') ) ) {
             $contact[] = "<br>"; // needed for email template
             $contact[] = __( 'Please contact the contact persons at the location directly if you have any questions regarding collection or return:', 'commonsbooking' );
@@ -77,19 +103,25 @@ class Location extends CustomPost
         return implode('<br>', $contact);
 
     }
-
     /**
-     * Returns location contact info on booking page if booking is confirmed
+     * formattedContactInfoOneLine
+     * 
+     * Returns formatted location contact info
+     * 
      * @return string
      */
-    public function location_contact_bookingpage()
+    public function formattedContactInfoOneLine()
     {   
-        global $post;
-        
-        if ( !empty( CB::get( 'location', CB_METABOX_PREFIX . 'location_contact') ) AND $post->post_status == "confirmed" ) {
-            return nl2br(CB::get('location',  CB_METABOX_PREFIX . 'location_contact'));
-        } else {
-            return __('Location contact will be shown after booking confirmation', 'commonsbooking');
-        }
+        return CB::get( 'location', CB_METABOX_PREFIX . 'location_contact');
+    }
+    /**
+     * Return Location pickup instructions
+     * 
+     * 
+     * @return string
+     */
+    public function pickupInstructions()
+    {   
+        return CB::get( 'location', CB_METABOX_PREFIX . 'location_pickupinstructions');
     }
 }

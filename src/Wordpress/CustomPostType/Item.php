@@ -23,6 +23,8 @@ class Item extends CustomPostType
 
         // Setting role permissions
         add_action('admin_init',array($this, 'addRoleCaps'),999);
+        // Listing of items
+        add_shortcode('cb_items', array(\CommonsBooking\View\Item::class, 'shortcode'));
     }
 
     public function getArgs()
@@ -88,7 +90,8 @@ class Item extends CustomPostType
             'exclude_from_search' => true,
 
             // Welche Elemente sollen in der Backend-Detailansicht vorhanden sein?
-            'supports'            => array('title', 'editor', 'thumbnail', 'custom-fields', 'revisions'),
+            'supports'            => array('title', 'editor', 'thumbnail', 'custom-fields', 'revisions', 
+        'excerpt'),
 
             // Soll der Post Type Kategorien zugeordnet werden können?
             'has_archive'         => false,
@@ -107,7 +110,10 @@ class Item extends CustomPostType
         $cb_content = '';
         if (is_singular(self::getPostType())) {
             ob_start();
-            cb_get_template_part('calendar', 'item');
+            global $post;
+            $item = new \CommonsBooking\Model\Item($post);
+            set_query_var( 'item', $item );
+            cb_get_template_part('item', 'single');
             $cb_content = ob_get_clean();
         } // if archive... 
 
