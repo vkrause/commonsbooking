@@ -384,7 +384,7 @@ class Plugin
             if ( ! $role) {
                 $role = add_role(
                     $roleName,
-                    __($roleName, COMMONSBOOKING_PLUGIN_SLUG)
+                    __('CommonsBooking Manager', 'commonsbooking')
                 );
             }
 
